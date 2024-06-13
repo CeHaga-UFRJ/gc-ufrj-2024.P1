@@ -15,10 +15,10 @@ def get_category_url(category_name, city_name):
     return url
 
 
-def get_elements_from_category(category_name, city_name):
+def get_elements_from_category(url, category_name="elements"):
     elements = []
+    sub_categories = []
 
-    url = get_category_url(category_name, city_name)
     # For each letter in the alphabet
     for letter in range(ord("A"), ord("Z") + 1):
         letter = chr(letter)
@@ -57,9 +57,13 @@ def get_elements_from_category(category_name, city_name):
         li_tags = ul_tag.find_all("li")
 
         # Get the text of each li tag
-        elements.extend([li.text.strip() for li in li_tags])
+        element = [li_tag.text.strip() for li_tag in li_tags]
 
-    return elements
+        # Add the elements to the list
+        elements.extend([e for e in element if not e.startswith("Category:")])
+        sub_categories.extend([e for e in element if e.startswith("Category:")])
+
+    return elements, sub_categories
 
 
 # Save categories url
@@ -72,10 +76,16 @@ for city in cities:
     print(f"\nScraping {city}...")
     for category in categories:
         print(f"\nRetrieving {category} in {city}...")
-        elements = get_elements_from_category(category, city)
-        print(f"Found {len(elements)} {category} in {city}.")
-
-        # Save the elements to a file
-        with open(f"{city}_{category}.txt", "w") as file:
-            for element in elements:
-                file.write(element + "\n")
+        category_url = get_category_url(category, city)
+        elements, sub_categories = get_elements_from_category(category_url, category)
+        print(
+            "Found "
+            + len(elements)
+            + " "
+            + category
+            + " and "
+            + len(sub_categories)
+            + " subcategories in "
+            + city
+            + "."
+        )
